@@ -1,0 +1,187 @@
+@startuml erd
+hide circle
+skinparam linetype ortho
+
+entity "users" as users {
+  **id** : INT <<PK>>
+  --
+  email : VARCHAR(255) <<UNIQUE>>
+  password_hash : VARCHAR(255)
+  name : VARCHAR(255)
+  role : ENUM(student, parent, teacher, admin)
+  avatar_url : VARCHAR(500)
+  theme : VARCHAR(20)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "subjects" as subjects {
+  **id** : INT <<PK>>
+  --
+  user_id : INT <<FK>>
+  name : VARCHAR(255)
+  color : VARCHAR(7)
+  category : VARCHAR(50)
+  time_studied_minutes : INT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "tasks" as tasks {
+  **id** : INT <<PK>>
+  --
+  subject_id : INT <<FK>>
+  title : VARCHAR(500)
+  description : TEXT
+  priority : ENUM
+  is_completed : BOOLEAN
+  due_date : DATETIME
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "goals" as goals {
+  **id** : INT <<PK>>
+  --
+  user_id : INT <<FK>>
+  title : VARCHAR(500)
+  type : ENUM
+  target_value : INT
+  current_value : INT
+  color : VARCHAR(7)
+  is_completed : BOOLEAN
+  period_start : DATE
+  period_end : DATE
+}
+
+entity "study_sessions" as study_sessions {
+  **id** : INT <<PK>>
+  --
+  user_id : INT <<FK>>
+  subject_id : INT <<FK>>
+  goal : VARCHAR(500)
+  work_interval : INT
+  short_break : INT
+  long_break : INT
+  intervals_count : INT
+  duration_minutes : INT
+  status : ENUM
+  scheduled_at : DATETIME
+  started_at : DATETIME
+  completed_at : DATETIME
+}
+
+entity "pomodoro_intervals" as pomodoro_intervals {
+  **id** : INT <<PK>>
+  --
+  session_id : INT <<FK>>
+  index_in_session : INT
+  type : ENUM
+  planned_minutes : INT
+  actual_minutes : INT
+  started_at : DATETIME
+  finished_at : DATETIME
+}
+
+entity "study_time_logs" as study_time_logs {
+  **id** : INT <<PK>>
+  --
+  user_id : INT <<FK>>
+  subject_id : INT <<FK>>
+  session_id : INT <<FK>>
+  date : DATE
+  minutes_studied : INT
+  tasks_completed : INT
+}
+
+entity "activity_zones" as activity_zones {
+  **id** : INT <<PK>>
+  --
+  user_id : INT <<FK>>
+  time_slot : VARCHAR(20)
+  time_start : TIME
+  time_end : TIME
+  score : INT
+  date : DATE
+}
+
+entity "achievements" as achievements {
+  **id** : INT <<PK>>
+  --
+  code : VARCHAR(100) <<UNIQUE>>
+  title : VARCHAR(255)
+  description : TEXT
+  icon_name : VARCHAR(100)
+  color : VARCHAR(7)
+}
+
+entity "user_achievements" as user_achievements {
+  **user_id** : INT <<PK, FK>>
+  **achievement_id** : INT <<PK, FK>>
+}
+
+entity "parent_children" as parent_children {
+  идентификаторы связанных пользователей
+}
+
+entity "invitations" as invitations {
+  приглашения для связывания аккаунтов
+}
+
+entity "user_invite_codes" as user_invite_codes {
+  персональные коды приглашений
+}
+
+users ||--o{ subjects : "1:N"
+users ||--o{ goals : "1:N"
+users ||--o{ study_sessions : "1:N"
+users ||--o{ study_time_logs : "1:N"
+users ||--o{ activity_zones : "1:N"
+users ||--o{ user_invite_codes : "1:N"
+
+subjects ||--o{ tasks : "1:N"
+subjects ||--o{ study_sessions : "1:N"
+subjects ||--o{ study_time_logs : "1:N"
+
+study_sessions ||--o{ pomodoro_intervals : "1:N"
+study_sessions ||--o{ study_time_logs : "1:N"
+
+users ||--o{ user_achievements
+achievements ||--o{ user_achievements
+users }o--o{ users : "N:M\n(parent_children)"
+
+users ||--o{ parent_children : "parent"
+users ||--o{ parent_children : "child"
+users ||--o{ invitations : "created_by"
+users ||--o{ invitations : "target"
+
+note bottom of users
+  Центральная сущность системы.
+  Роли: student, parent, teacher, admin.
+  email — UNIQUE.
+end note
+
+note bottom of user_achievements
+  Промежуточная таблица N:M
+  между users и achievements.
+  Содержит user_id и achievement_id.
+end note
+
+note bottom of parent_children
+  Связь между аккаунтами
+  родителя и учащегося.
+  Хранит идентификаторы
+  связанных пользователей.
+end note
+
+note bottom of invitations
+  Приглашения для связывания аккаунтов.
+  Ссылки на пользователя, создавшего
+  приглашение, и целевого пользователя.
+end note
+
+note bottom of user_invite_codes
+  Персональные коды приглашений пользователей.
+end note
+
+@enduml

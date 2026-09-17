@@ -1,0 +1,54 @@
+@startuml use-cases
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Студент" as Student
+actor "Родитель/Репетитор" as Parent
+
+rectangle "Studly — организация учебного процесса" {
+  usecase "Регистрация" as UC_Register
+  usecase "Авторизация" as UC_Login
+
+  usecase "Управление предметами" as UC_Subjects
+  usecase "Управление задачами" as UC_Tasks
+  usecase "Управление целями" as UC_Goals
+  usecase "Планирование сессии" as UC_SessionPlan
+  usecase "Pomodoro" as UC_Pomodoro
+  usecase "Учёт времени" as UC_TimeLog
+  usecase "Просмотр статистики" as UC_Stats
+  usecase "Достижения" as UC_Achievements
+  usecase "AI-планирование" as UC_AIPlan
+  usecase "AI Study Companion" as UC_AICompanion
+
+  usecase "Приглашение учащегося" as UC_Invite
+  usecase "Связь с учащимся" as UC_Link
+  usecase "Просмотр предметов" as UC_ViewSubjects
+  usecase "Просмотр задач" as UC_ViewTasks
+  usecase "Просмотр целей" as UC_ViewGoals
+  usecase "Просмотр учебного времени" as UC_ViewTime
+}
+
+Student --> UC_Register
+Student --> UC_Login
+Student --> UC_Subjects
+Student --> UC_Tasks
+Student --> UC_Goals
+Student --> UC_SessionPlan
+Student --> UC_Pomodoro
+Student --> UC_TimeLog
+Student --> UC_Stats
+Student --> UC_Achievements
+Student --> UC_AIPlan
+Student --> UC_AICompanion
+
+Parent --> UC_Register
+Parent --> UC_Login
+Parent --> UC_Invite
+Parent --> UC_Link
+Parent --> UC_ViewSubjects
+Parent --> UC_ViewTasks
+Parent --> UC_ViewGoals
+Parent --> UC_ViewTime
+Parent --> UC_Stats
+
+@enduml

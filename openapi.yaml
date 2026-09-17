@@ -1,0 +1,1767 @@
+openapi: 3.0.3
+info:
+  title: Studly API
+  description: Спецификация REST API для веб-приложения организации учебного процесса Studly (Лабораторная работа #2)
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Локальный сервер разработки
+tags:
+  - name: Auth
+    description: Регистрация и авторизация
+  - name: Subjects
+    description: Учебные предметы
+  - name: Tasks
+    description: Учебные задачи
+  - name: Goals
+    description: Учебные цели
+  - name: StudySessions
+    description: Учебные сессии и Pomodoro
+  - name: StudyTimeLogs
+    description: Учёт учебного времени
+  - name: ActivityZones
+    description: Зоны активности и статистика
+  - name: Achievements
+    description: Достижения
+  - name: Invitations
+    description: Приглашения и связь родитель–учащийся
+  - name: AI
+    description: AI-планирование и AI Study Companion
+paths:
+  /auth/register:
+    post:
+      summary: Регистрация учётной записи
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Учётная запись успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Ошибка валидации входных данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Конфликт — пользователь с таким email уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/login:
+    post:
+      summary: Вход в систему и получение токена
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Ошибка валидации входных данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован (невалидные учётные данные)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /subjects:
+    get:
+      summary: Получение списка учебных предметов
+      tags:
+        - Subjects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          description: Идентификатор учащегося (для просмотра предметов родителем)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubjectResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на просмотр предметов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Добавление учебного предмета
+      tags:
+        - Subjects
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubjectRequest'
+      responses:
+        '201':
+          description: Учебный предмет успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на создание предмета
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /subjects/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Идентификатор учебного предмета
+        schema:
+          type: integer
+    get:
+      summary: Получение учебного предмета по ID
+      tags:
+        - Subjects
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на просмотр предмета
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Учебный предмет не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Полное обновление учебного предмета
+      tags:
+        - Subjects
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSubjectRequest'
+      responses:
+        '200':
+          description: Учебный предмет успешно обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на изменение предмета
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Учебный предмет не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Частичное изменение учебного предмета
+      tags:
+        - Subjects
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchSubjectRequest'
+      responses:
+        '200':
+          description: Учебный предмет успешно изменён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на изменение предмета
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Учебный предмет не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Удаление учебного предмета
+      tags:
+        - Subjects
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Учебный предмет успешно удалён
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на удаление предмета
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Учебный предмет не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /tasks:
+    get:
+      summary: Получение списка учебных задач
+      tags:
+        - Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: subject_id
+          in: query
+          required: false
+          description: Фильтр по учебному предмету
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          required: false
+          description: Идентификатор учащегося (для контроля задач родителем)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на просмотр задач
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Создание учебной задачи
+      tags:
+        - Tasks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Учебная задача успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на создание задачи
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Учебный предмет не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /tasks/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Идентификатор учебной задачи
+        schema:
+          type: integer
+    patch:
+      summary: Изменение учебной задачи
+      tags:
+        - Tasks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchTaskRequest'
+      responses:
+        '200':
+          description: Учебная задача успешно изменена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на изменение задачи
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Учебная задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Удаление учебной задачи
+      tags:
+        - Tasks
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Учебная задача успешно удалена
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на удаление задачи
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Учебная задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /goals:
+    get:
+      summary: Получение списка учебных целей
+      tags:
+        - Goals
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          description: Идентификатор учащегося (для контроля целей родителем)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GoalResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на просмотр целей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Создание учебной цели
+      tags:
+        - Goals
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGoalRequest'
+      responses:
+        '201':
+          description: Учебная цель успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoalResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на создание цели
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /goals/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Идентификатор учебной цели
+        schema:
+          type: integer
+    patch:
+      summary: Изменение учебной цели
+      tags:
+        - Goals
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchGoalRequest'
+      responses:
+        '200':
+          description: Учебная цель успешно изменена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoalResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на изменение цели
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Учебная цель не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Удаление учебной цели
+      tags:
+        - Goals
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Учебная цель успешно удалена
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на удаление цели
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Учебная цель не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /study-sessions:
+    get:
+      summary: Получение списка учебных сессий
+      tags:
+        - StudySessions
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StudySessionResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Создание и планирование учебной сессии
+      tags:
+        - StudySessions
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStudySessionRequest'
+      responses:
+        '201':
+          description: Учебная сессия успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudySessionResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на создание сессии
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Учебный предмет не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /study-sessions/{id}:
+    patch:
+      summary: Изменение учебной сессии (состояние Pomodoro)
+      tags:
+        - StudySessions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор учебной сессии
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchStudySessionRequest'
+      responses:
+        '200':
+          description: Учебная сессия успешно изменена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudySessionResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на изменение сессии
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Учебная сессия не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Конфликт состояния учебной сессии
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /study-sessions/{id}/pomodoro-intervals:
+    get:
+      summary: Получение Pomodoro-интервалов учебной сессии
+      tags:
+        - StudySessions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор учебной сессии
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PomodoroIntervalResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на просмотр интервалов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Учебная сессия не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /study-time-logs:
+    get:
+      summary: Получение учёта учебного времени
+      tags:
+        - StudyTimeLogs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          description: Идентификатор учащегося (для просмотра учебного времени родителем)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StudyTimeLogResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на просмотр учебного времени
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Сохранение затраченного учебного времени
+      tags:
+        - StudyTimeLogs
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStudyTimeLogRequest'
+      responses:
+        '201':
+          description: Учебное время успешно сохранено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyTimeLogResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на сохранение учебного времени
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /activity-zones:
+    get:
+      summary: Получение зон активности
+      tags:
+        - ActivityZones
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          description: Идентификатор учащегося (для просмотра статистики родителем)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActivityZoneResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на просмотр статистики
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /achievements:
+    get:
+      summary: Получение справочника достижений
+      tags:
+        - Achievements
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AchievementResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /user-achievements:
+    get:
+      summary: Получение достижений пользователя
+      tags:
+        - Achievements
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserAchievementResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /user-invite-codes:
+    get:
+      summary: Получение персонального кода приглашения
+      tags:
+        - Invitations
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserInviteCodeResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /invitations:
+    post:
+      summary: Создание приглашения для связи аккаунтов
+      tags:
+        - Invitations
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvitationRequest'
+      responses:
+        '201':
+          description: Приглашение успешно создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на создание приглашения
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Целевой пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /parent-children:
+    get:
+      summary: Получение связей родитель–учащийся
+      tags:
+        - Invitations
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParentChildResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на просмотр связей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Связывание аккаунта учащегося с аккаунтом родителя
+      tags:
+        - Invitations
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateParentChildRequest'
+      responses:
+        '201':
+          description: Аккаунты успешно связаны
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParentChildResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на связывание аккаунтов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Конфликт — связь аккаунтов уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /ai/plans:
+    post:
+      summary: Получение персонализированного учебного плана
+      tags:
+        - AI
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Учебный план успешно получен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiPlanResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на AI-планирование
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Необработанная ошибка на стороне сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /ai/study-companion:
+    post:
+      summary: Получение помощи при изучении учебного материала
+      tags:
+        - AI
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiStudyCompanionRequest'
+      responses:
+        '200':
+          description: Помощь успешно получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiStudyCompanionResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Клиент не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Нет прав на использование AI Study Companion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Необработанная ошибка на стороне сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - name
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          example: student@example.com
+        password:
+          type: string
+          example: "password"
+        name:
+          type: string
+          example: "Иван Иванов"
+        role:
+          type: string
+          enum:
+            - student
+            - parent
+            - teacher
+            - admin
+          example: student
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: student@example.com
+        password:
+          type: string
+          example: "password"
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+        user:
+          $ref: '#/components/schemas/UserResponse'
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          format: email
+          example: student@example.com
+        name:
+          type: string
+          example: "Иван Иванов"
+        role:
+          type: string
+          enum:
+            - student
+            - parent
+            - teacher
+            - admin
+          example: student
+        avatar_url:
+          type: string
+          example: "https://example.com/avatar.png"
+        theme:
+          type: string
+          example: "light"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreateSubjectRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "Математика"
+        color:
+          type: string
+          example: "#4F46E5"
+        category:
+          type: string
+          example: "exact"
+    UpdateSubjectRequest:
+      type: object
+      required:
+        - name
+        - color
+        - category
+      properties:
+        name:
+          type: string
+          example: "Математика"
+        color:
+          type: string
+          example: "#4F46E5"
+        category:
+          type: string
+          example: "exact"
+    PatchSubjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Алгебра"
+        color:
+          type: string
+          example: "#22C55E"
+        category:
+          type: string
+          example: "exact"
+    SubjectResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Математика"
+        color:
+          type: string
+          example: "#4F46E5"
+        category:
+          type: string
+          example: "exact"
+        time_studied_minutes:
+          type: integer
+          example: 120
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreateTaskRequest:
+      type: object
+      required:
+        - subject_id
+        - title
+      properties:
+        subject_id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Решить задачи по теме"
+        description:
+          type: string
+          example: "Задачи 1–10"
+        priority:
+          type: string
+          example: "high"
+        due_date:
+          type: string
+          format: date-time
+    PatchTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "Решить задачи по теме"
+        description:
+          type: string
+          example: "Задачи 1–10"
+        priority:
+          type: string
+          example: "high"
+        is_completed:
+          type: boolean
+          example: true
+        due_date:
+          type: string
+          format: date-time
+    TaskResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        subject_id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Решить задачи по теме"
+        description:
+          type: string
+          example: "Задачи 1–10"
+        priority:
+          type: string
+          example: "high"
+        is_completed:
+          type: boolean
+          example: false
+        due_date:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreateGoalRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          example: "Заниматься 10 часов в неделю"
+        type:
+          type: string
+          example: "time"
+        target_value:
+          type: integer
+          example: 600
+        current_value:
+          type: integer
+          example: 0
+        color:
+          type: string
+          example: "#F59E0B"
+        period_start:
+          type: string
+          format: date
+        period_end:
+          type: string
+          format: date
+    PatchGoalRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "Заниматься 10 часов в неделю"
+        type:
+          type: string
+          example: "time"
+        target_value:
+          type: integer
+          example: 600
+        current_value:
+          type: integer
+          example: 120
+        color:
+          type: string
+          example: "#F59E0B"
+        is_completed:
+          type: boolean
+          example: false
+        period_start:
+          type: string
+          format: date
+        period_end:
+          type: string
+          format: date
+    GoalResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Заниматься 10 часов в неделю"
+        type:
+          type: string
+          example: "time"
+        target_value:
+          type: integer
+          example: 600
+        current_value:
+          type: integer
+          example: 120
+        color:
+          type: string
+          example: "#F59E0B"
+        is_completed:
+          type: boolean
+          example: false
+        period_start:
+          type: string
+          format: date
+        period_end:
+          type: string
+          format: date
+    CreateStudySessionRequest:
+      type: object
+      required:
+        - subject_id
+      properties:
+        subject_id:
+          type: integer
+          example: 1
+        goal:
+          type: string
+          example: "Повторить формулы"
+        work_interval:
+          type: integer
+          example: 25
+        short_break:
+          type: integer
+          example: 5
+        long_break:
+          type: integer
+          example: 15
+        intervals_count:
+          type: integer
+          example: 4
+        duration_minutes:
+          type: integer
+          example: 100
+        scheduled_at:
+          type: string
+          format: date-time
+    PatchStudySessionRequest:
+      type: object
+      properties:
+        goal:
+          type: string
+          example: "Повторить формулы"
+        status:
+          type: string
+          example: "started"
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        duration_minutes:
+          type: integer
+          example: 100
+    StudySessionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        subject_id:
+          type: integer
+          example: 1
+        goal:
+          type: string
+          example: "Повторить формулы"
+        work_interval:
+          type: integer
+          example: 25
+        short_break:
+          type: integer
+          example: 5
+        long_break:
+          type: integer
+          example: 15
+        intervals_count:
+          type: integer
+          example: 4
+        duration_minutes:
+          type: integer
+          example: 100
+        status:
+          type: string
+          example: "scheduled"
+        scheduled_at:
+          type: string
+          format: date-time
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+    PomodoroIntervalResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        session_id:
+          type: integer
+          example: 1
+        index_in_session:
+          type: integer
+          example: 1
+        type:
+          type: string
+          example: "work"
+        planned_minutes:
+          type: integer
+          example: 25
+        actual_minutes:
+          type: integer
+          example: 25
+        started_at:
+          type: string
+          format: date-time
+        finished_at:
+          type: string
+          format: date-time
+    CreateStudyTimeLogRequest:
+      type: object
+      required:
+        - date
+        - minutes_studied
+      properties:
+        subject_id:
+          type: integer
+          example: 1
+        session_id:
+          type: integer
+          example: 1
+        date:
+          type: string
+          format: date
+          example: "2026-09-17"
+        minutes_studied:
+          type: integer
+          example: 50
+        tasks_completed:
+          type: integer
+          example: 2
+    StudyTimeLogResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        subject_id:
+          type: integer
+          example: 1
+        session_id:
+          type: integer
+          example: 1
+        date:
+          type: string
+          format: date
+          example: "2026-09-17"
+        minutes_studied:
+          type: integer
+          example: 50
+        tasks_completed:
+          type: integer
+          example: 2
+    ActivityZoneResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        time_slot:
+          type: string
+          example: "morning"
+        time_start:
+          type: string
+          example: "08:00:00"
+        time_end:
+          type: string
+          example: "12:00:00"
+        score:
+          type: integer
+          example: 80
+        date:
+          type: string
+          format: date
+          example: "2026-09-17"
+    AchievementResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        code:
+          type: string
+          example: "first_session"
+        title:
+          type: string
+          example: "Первая сессия"
+        description:
+          type: string
+          example: "Завершите первую учебную сессию"
+        icon_name:
+          type: string
+          example: "trophy"
+        color:
+          type: string
+          example: "#EAB308"
+    UserAchievementResponse:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        achievement_id:
+          type: integer
+          example: 1
+    UserInviteCodeResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        code:
+          type: string
+          example: "STUDENT-INVITE"
+    CreateInvitationRequest:
+      type: object
+      required:
+        - target_user_id
+      properties:
+        target_user_id:
+          type: integer
+          example: 2
+    InvitationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        created_by_user_id:
+          type: integer
+          example: 3
+        target_user_id:
+          type: integer
+          example: 2
+    CreateParentChildRequest:
+      type: object
+      required:
+        - parent_id
+        - child_id
+      properties:
+        parent_id:
+          type: integer
+          example: 3
+        child_id:
+          type: integer
+          example: 2
+    ParentChildResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        parent_id:
+          type: integer
+          example: 3
+        child_id:
+          type: integer
+          example: 2
+    AiPlanResponse:
+      type: object
+      properties:
+        plan:
+          type: string
+          example: "Персонализированный учебный план"
+    AiStudyCompanionRequest:
+      type: object
+      required:
+        - material
+      properties:
+        material:
+          type: string
+          example: "Учебный материал по теме"
+    AiStudyCompanionResponse:
+      type: object
+      properties:
+        help:
+          type: string
+          example: "Помощь при изучении учебного материала"
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "INVALID_INPUT"
+        message:
+          type: string
+          example: "Поле name не может быть пустым"
+        timestamp:
+          type: string
+          format: date-time

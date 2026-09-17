@@ -1,0 +1,133 @@
+@startuml domain-model
+skinparam classAttributeIconSize 0
+
+class "Пользователь\n(users)" as User {
+  id
+  email
+  password_hash
+  name
+  role
+  avatar_url
+  theme
+}
+
+class "Предмет\n(subjects)" as Subject {
+  id
+  name
+  color
+  category
+  time_studied_minutes
+}
+
+class "Задача\n(tasks)" as Task {
+  id
+  title
+  description
+  priority
+  is_completed
+  due_date
+}
+
+class "Цель\n(goals)" as Goal {
+  id
+  title
+  type
+  target_value
+  current_value
+  color
+  is_completed
+  period_start
+  period_end
+}
+
+class "Учебная сессия\n(study_sessions)" as StudySession {
+  id
+  goal
+  work_interval
+  short_break
+  long_break
+  intervals_count
+  duration_minutes
+  status
+  scheduled_at
+  started_at
+  completed_at
+}
+
+class "Pomodoro-интервал\n(pomodoro_intervals)" as PomodoroInterval {
+  id
+  index_in_session
+  type
+  planned_minutes
+  actual_minutes
+  started_at
+  finished_at
+}
+
+class "Учебное время\n(study_time_logs)" as StudyTimeLog {
+  id
+  date
+  minutes_studied
+  tasks_completed
+}
+
+class "Зона активности\n(activity_zones)" as ActivityZone {
+  id
+  time_slot
+  time_start
+  time_end
+  score
+  date
+}
+
+class "Достижение\n(achievements)" as Achievement {
+  id
+  code
+  title
+  description
+  icon_name
+  color
+}
+
+class "Достижение пользователя\n(user_achievements)" as UserAchievement {
+  user_id
+  achievement_id
+}
+
+class "Родитель–учащийся\n(parent_children)" as ParentChild {
+  id
+  parent_id
+  child_id
+}
+
+class "Приглашение\n(invitations)" as Invitation {
+  id
+}
+
+class "Код приглашения\n(user_invite_codes)" as UserInviteCode {
+  id
+}
+
+User "1" --> "0..*" Subject : владеет
+User "1" --> "0..*" Goal : ставит
+User "1" --> "0..*" StudySession : проводит
+User "1" --> "0..*" StudyTimeLog : учитывает
+User "1" --> "0..*" ActivityZone : анализирует
+User "1" --> "0..*" UserInviteCode : имеет
+
+Subject "1" --> "0..*" Task : содержит
+Subject "1" --> "0..*" StudySession : используется в
+Subject "1" --> "0..*" StudyTimeLog : учитывается в
+
+StudySession "1" --> "0..*" PomodoroInterval : включает
+StudySession "1" --> "0..*" StudyTimeLog : фиксируется в
+
+User "1" --> "0..*" UserAchievement
+Achievement "1" --> "0..*" UserAchievement
+
+User "1" --> "0..*" ParentChild : родитель
+User "1" --> "0..*" ParentChild : учащийся
+
+User "1" --> "0..*" Invitation : создаёт / получает
+
+@enduml

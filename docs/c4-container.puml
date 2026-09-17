@@ -1,0 +1,47 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_LEFT_RIGHT()
+
+title C4 Container Diagram — Studly
+
+' Пользователи
+Person(student, "Студент", "Планирует учебу и выполняет задания")
+Person(parent, "Родитель", "Следит за прогрессом студента")
+Person(teacher, "Преподаватель", "Контролирует учебный процесс")
+
+' Система
+System_Boundary(studly, "Studly") {
+
+    Container(client, "Web Client", "React", "Интерфейс приложения")
+
+    Container(api, "Backend", "Python / FastAPI", "API и основная логика приложения")
+
+    ContainerDb(db, "Database", "MySQL", "Пользователи, предметы, задачи, цели и учебная статистика")
+}
+
+' Внешний сервис
+System_Ext(ai, "AI Service", "AI API", "Планирование, тесты и рекомендации")
+
+' Связи пользователей
+Rel(student, client, "Использует", "HTTPS")
+Rel(parent, client, "Просматривает прогресс", "HTTPS")
+Rel(teacher, client, "Контролирует прогресс", "HTTPS")
+
+' Связи системы
+Rel(client, api, "Запросы", "REST / JSON")
+Rel(api, db, "Работает с данными", "SQL")
+Rel(api, ai, "Отправляет запросы", "HTTPS / API")
+
+' Стили
+UpdateElementStyle(student, $bgColor="#E8EAF6", $fontColor="#263238", $borderColor="#5C6BC0")
+UpdateElementStyle(parent, $bgColor="#FCE4EC", $fontColor="#263238", $borderColor="#EC407A")
+UpdateElementStyle(teacher, $bgColor="#E3F2FD", $fontColor="#263238", $borderColor="#42A5F5")
+
+UpdateElementStyle(client, $bgColor="#E8EAF6", $fontColor="#263238", $borderColor="#5C6BC0")
+UpdateElementStyle(api, $bgColor="#E8F5E9", $fontColor="#263238", $borderColor="#66BB6A")
+UpdateElementStyle(db, $bgColor="#E3F2FD", $fontColor="#263238", $borderColor="#42A5F5")
+UpdateElementStyle(ai, $bgColor="#F3E5F5", $fontColor="#263238", $borderColor="#AB47BC")
+
+UpdateBoundaryStyle(studly, $bgColor="#FAFAFA", $borderColor="#9E9E9E", $borderStyle="dashed", $fontColor="#424242")
+@enduml
