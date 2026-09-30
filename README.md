@@ -26,6 +26,11 @@
   <a href="openapi.yaml">Лабораторная работа №2 — REST API / OpenAPI 3.0</a>
 </p>
 
+<p>
+  <img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzJiNGprcGNycDBrd2Z4dnF1aGRscnNmZnlodnY5ODliNTd5dXRhbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/iEbPnIPyh9Exq/giphy.gif" width="47px"/>
+  <a href="cmd/app/main.py">Лабораторная работа №3 — каркас приложения / Clean Architecture</a>
+</p>
+
 ## 💻 О проекте
 
 **Studly** — веб-приложение для организации учебного процесса.

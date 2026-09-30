@@ -1,1 +1,19 @@
+# Environment configuration
+.env
+.env.local
+
+# Dependencies & Build outputs
+node_modules/
+dist/
+build/
+bin/
+*.exe
+*.bin
+__pycache__/
+.venv/
+venv/
+
+.idea/
+.vscode/
+
 report_extracted.txt
