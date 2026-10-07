@@ -1,0 +1,49 @@
+# VCS
+.git
+.gitignore
+
+# Секреты и локальная конфигурация
+.env
+.env.local
+.env.*
+
+# Зависимости и артефакты сборки
+node_modules/
+dist/
+build/
+bin/
+*.exe
+*.bin
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Тесты и логи
+tests/
+test/
+*.log
+logs/
+
+# IDE
+.idea/
+.vscode/
+
+# Документация (в рантайме не нужна)
+README.md
+ARCHITECTURE.md
+openapi.yaml
+docs/
+report_extracted.txt
+
+# Сами docker-файлы
+Dockerfile
+.dockerignore
+docker-compose*.yml

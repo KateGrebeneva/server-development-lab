@@ -31,6 +31,11 @@
   <a href="cmd/app/main.py">Лабораторная работа №3 — каркас приложения / Clean Architecture</a>
 </p>
 
+<p>
+  <img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzJiNGprcGNycDBrd2Z4dnF1aGRscnNmZnlodnY5ODliNTd5dXRhbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/iEbPnIPyh9Exq/giphy.gif" width="47px"/>
+  <a href="Dockerfile">Лабораторная работа №4 — контейнеризация / Docker</a>
+</p>
+
 ## 💻 О проекте
 
 **Studly** — веб-приложение для организации учебного процесса.
@@ -38,3 +43,16 @@
 Сервис позволяет планировать обучение, работать с предметами и задачами, ставить цели, проводить Pomodoro-сессии, учитывать время обучения и анализировать статистику.
 
 Также в проекте предусмотрены AI-помощники для работы с учебным материалом и отдельные возможности для родителей — просмотр прогресса учащегося.
+
+## 🐳 Запуск в Docker
+
+```bash
+# сборка образа
+docker build -t studly-api:latest .
+
+# запуск контейнера
+docker run --name studly-container -d -p 8080:8080 -e HTTP_PORT=8080 -e APP_ENV=production studly-api:latest
+
+# проверка
+curl http://localhost:8080/api/v1/health
+```
