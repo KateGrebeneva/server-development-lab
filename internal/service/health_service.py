@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from time import monotonic
 
+import asyncpg
+
 from internal.config.settings import Config
 
 
@@ -18,7 +20,11 @@ class HealthService:
         self._config = config
         self._started_at = monotonic()
 
-    def get_health(self) -> HealthInfo:
+    async def get_health(self, pool: asyncpg.Pool) -> HealthInfo:
+        # Проверяем доступность именно базы, а не только работу HTTP-сервера.
+        async with pool.acquire() as connection:
+            await connection.fetchval("SELECT 1")
+
         return HealthInfo(
             status="pass",
             app_name=self._config.app_name,

@@ -32,18 +32,15 @@ test/
 *.log
 logs/
 
-# IDE
 .idea/
 .vscode/
 
-# Документация (в рантайме не нужна)
 README.md
 ARCHITECTURE.md
 openapi.yaml
 docs/
 report_extracted.txt
 
-# Сами docker-файлы
 Dockerfile
 .dockerignore
 docker-compose*.yml

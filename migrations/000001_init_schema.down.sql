@@ -1,0 +1,13 @@
+DROP TABLE IF EXISTS user_invite_codes;
+DROP TABLE IF EXISTS user_achievements;
+DROP TABLE IF EXISTS parent_children;
+DROP TABLE IF EXISTS invitations;
+DROP TABLE IF EXISTS activity_zones;
+DROP TABLE IF EXISTS study_time_logs;
+DROP TABLE IF EXISTS pomodoro_intervals;
+DROP TABLE IF EXISTS study_sessions;
+DROP TABLE IF EXISTS achievements;
+DROP TABLE IF EXISTS goals;
+DROP TABLE IF EXISTS tasks;
+DROP TABLE IF EXISTS subjects;
+DROP TABLE IF EXISTS users;

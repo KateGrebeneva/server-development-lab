@@ -36,6 +36,11 @@
   <a href="Dockerfile">Лабораторная работа №4 — контейнеризация / Docker</a>
 </p>
 
+<p>
+  <img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzJiNGprcGNycDBrd2Z4dnF1aGRscnNmZnlodnY5ODliNTd5dXRhbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/iEbPnIPyh9Exq/giphy.gif" width="47px"/>
+  <a href="docs/DATABASE.md">Лабораторная работа №5 — PostgreSQL / SQL-миграции</a>
+</p>
+
 ## 💻 О проекте
 
 **Studly** — веб-приложение для организации учебного процесса.
@@ -56,3 +61,24 @@ docker run --name studly-container -d -p 8080:8080 -e HTTP_PORT=8080 -e APP_ENV=
 # проверка
 curl http://localhost:8080/api/v1/health
 ```
+
+
+
+
+## 🗄️ Лабораторная работа №5 — база данных
+
+В проекте используется PostgreSQL с базой `studly_lab`. Миграция создаёт таблицы пользователей, предметов, задач, учебных сессий, статистики, целей и достижений.
+
+```powershell
+Copy-Item .env.example .env
+docker compose up --build -d
+docker compose ps -a
+docker compose logs migrate
+docker compose exec db psql -U studly_user -d studly_lab -c "\dt"
+docker compose exec db psql -U studly_user -d studly_lab -c "SELECT version, dirty FROM schema_migrations;"
+Invoke-RestMethod http://localhost:8080/api/v1/health
+```
+
+Подробные команды проверки, отката и повторного применения миграции: [docs/DATABASE.md](docs/DATABASE.md) и [LAB5_CHECKLIST.md](LAB5_CHECKLIST.md).
+
+**Важно:** если `.env` уже существует, убедитесь, что `DB_NAME=studly_lab`. Файл `.env` не включён в архив, чтобы не передавать личные параметры подключения; создайте его из `.env.example`.
