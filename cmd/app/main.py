@@ -16,6 +16,8 @@ from internal.repository.postgres import (
 )
 from internal.service.health_service import HealthService
 from internal.service.study_session_service import StudySessionService
+from internal.service.subject_service import SubjectService
+from internal.service.task_service import TaskService
 
 logging.basicConfig(level=logging.INFO)
 config = load_config()
@@ -34,6 +36,13 @@ async def lifespan(app: FastAPI):
     app.state.task_repo = PostgresTaskRepository(pool)
     app.state.study_session_repo = PostgresStudySessionRepository(pool)
     app.state.study_session_service = StudySessionService(pool)
+
+    # Service Layer: контроллеры получают сервисы, а сервисы — репозитории.
+    app.state.subject_service = SubjectService(app.state.subject_repo)
+    app.state.task_service = TaskService(
+        app.state.task_repo,
+        app.state.subject_repo,
+    )
     try:
         yield
     finally:

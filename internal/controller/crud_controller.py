@@ -7,6 +7,10 @@ from pydantic import BaseModel, Field
 
 from internal.controller.errors import ALREADY_EXISTS, CONFLICT, INVALID_INPUT, NOT_FOUND
 from internal.domain import StudySession, Subject, Task, User
+from internal.controller.dto import (
+    SubjectCreateRequest, SubjectUpdateRequest, SubjectResponse,
+    TaskCreateRequest, TaskPatchRequest, TaskResponse,
+)
 
 class UserCreate(BaseModel):
     email: str = Field(examples=["katya@example.com"])
@@ -14,23 +18,6 @@ class UserCreate(BaseModel):
     name: str = Field(examples=["Катя"])
     role: str = Field("student", description="student, parent, teacher или admin")
     theme: str = Field("light", description="light, dark или system")
-
-
-class SubjectInput(BaseModel):
-    user_id: int = Field(examples=[1])
-    name: str = Field(examples=["Математика"])
-    color: str = Field("#7012CE", description="HEX-цвет, например #7012CE")
-    category: str | None = None
-    time_studied_minutes: int = 0
-
-
-class TaskInput(BaseModel):
-    subject_id: int = Field(examples=[1])
-    title: str = Field(examples=["Решить задачи 1–10"])
-    description: str | None = None
-    priority: str = Field("medium", description="low, medium или high")
-    is_completed: bool = False
-    due_date: datetime | None = None
 
 
 class StudySessionCreate(BaseModel):
@@ -84,62 +71,88 @@ def create_crud_router() -> APIRouter:
         await request.app.state.user_repo.delete(user_id)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-    # ---------- предметы ----------
-    @router.post("/subjects", status_code=201, tags=["subjects"], summary="Создать предмет",
+    # ---------- предметы: полный CRUD через SubjectService ----------
+    @router.post("/subjects", status_code=201, tags=["subjects"],
+                 summary="Создать предмет", response_model=SubjectResponse,
                  responses={**CONFLICT, **INVALID_INPUT})
-    async def create_subject(body: SubjectInput, request: Request) -> Subject:
-        return await request.app.state.subject_repo.create(Subject(**body.model_dump()))
+    async def create_subject(body: SubjectCreateRequest, request: Request,
+                             response: Response) -> SubjectResponse:
+        subject = await request.app.state.subject_service.create(
+            Subject(**body.model_dump())
+        )
+        response.headers["Location"] = f"/api/v1/subjects/{subject.id}"
+        return SubjectResponse.from_domain(subject)
 
-    @router.get("/subjects", tags=["subjects"], summary="Список предметов")
-    async def list_subjects(request: Request, limit: int = Query(20, description="не больше 100"),
-                            offset: int = 0) -> list[Subject]:
-        return await request.app.state.subject_repo.list(limit, offset)
+    @router.get("/subjects", tags=["subjects"], summary="Список предметов",
+                response_model=list[SubjectResponse])
+    async def list_subjects(request: Request,
+                            limit: int = Query(20, ge=1, le=100),
+                            offset: int = Query(0, ge=0)) -> list[SubjectResponse]:
+        items = await request.app.state.subject_service.list(limit, offset)
+        return [SubjectResponse.from_domain(item) for item in items]
 
-    @router.get("/subjects/{subject_id}", tags=["subjects"], summary="Получить предмет",
+    @router.get("/subjects/{subject_id}", tags=["subjects"],
+                summary="Получить предмет", response_model=SubjectResponse,
                 responses=NOT_FOUND)
-    async def get_subject(subject_id: int, request: Request) -> Subject:
-        return await request.app.state.subject_repo.get_by_id(subject_id)
+    async def get_subject(subject_id: int, request: Request) -> SubjectResponse:
+        item = await request.app.state.subject_service.get(subject_id)
+        return SubjectResponse.from_domain(item)
 
-    @router.put("/subjects/{subject_id}", tags=["subjects"], summary="Обновить предмет",
+    @router.put("/subjects/{subject_id}", tags=["subjects"],
+                summary="Полностью обновить предмет",
+                response_model=SubjectResponse,
                 responses={**NOT_FOUND, **INVALID_INPUT})
-    async def update_subject(subject_id: int, body: SubjectInput, request: Request) -> Subject:
-        repo = request.app.state.subject_repo
-        await repo.update(Subject(id=subject_id, **body.model_dump()))
-        return await repo.get_by_id(subject_id)
+    async def update_subject(subject_id: int, body: SubjectUpdateRequest,
+                             request: Request) -> SubjectResponse:
+        item = await request.app.state.subject_service.update(
+            subject_id, Subject(**body.model_dump())
+        )
+        return SubjectResponse.from_domain(item)
 
     @router.delete("/subjects/{subject_id}", status_code=204, tags=["subjects"],
                    summary="Удалить предмет", responses=NOT_FOUND)
     async def delete_subject(subject_id: int, request: Request) -> Response:
-        await request.app.state.subject_repo.delete(subject_id)
+        await request.app.state.subject_service.delete(subject_id)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-    # ---------- задачи ----------
-    @router.post("/tasks", status_code=201, tags=["tasks"], summary="Создать задачу",
-                 responses={**CONFLICT, **INVALID_INPUT})
-    async def create_task(body: TaskInput, request: Request) -> Task:
-        return await request.app.state.task_repo.create(Task(**body.model_dump()))
+    # ---------- задачи: создание, чтение и изменение состояния ----------
+    @router.post("/tasks", status_code=201, tags=["tasks"],
+                 summary="Создать учебную задачу", response_model=TaskResponse,
+                 responses={**NOT_FOUND, **CONFLICT, **INVALID_INPUT})
+    async def create_task(body: TaskCreateRequest, request: Request,
+                          response: Response) -> TaskResponse:
+        item = await request.app.state.task_service.create(Task(**body.model_dump()))
+        response.headers["Location"] = f"/api/v1/tasks/{item.id}"
+        return TaskResponse.from_domain(item)
 
-    @router.get("/tasks", tags=["tasks"], summary="Список задач")
-    async def list_tasks(request: Request, limit: int = Query(20, description="не больше 100"),
-                         offset: int = 0) -> list[Task]:
-        return await request.app.state.task_repo.list(limit, offset)
+    @router.get("/tasks", tags=["tasks"], summary="Список задач",
+                response_model=list[TaskResponse])
+    async def list_tasks(request: Request,
+                         limit: int = Query(20, ge=1, le=100),
+                         offset: int = Query(0, ge=0)) -> list[TaskResponse]:
+        items = await request.app.state.task_service.list(limit, offset)
+        return [TaskResponse.from_domain(item) for item in items]
 
     @router.get("/tasks/{task_id}", tags=["tasks"], summary="Получить задачу",
-                responses=NOT_FOUND)
-    async def get_task(task_id: int, request: Request) -> Task:
-        return await request.app.state.task_repo.get_by_id(task_id)
+                response_model=TaskResponse, responses=NOT_FOUND)
+    async def get_task(task_id: int, request: Request) -> TaskResponse:
+        item = await request.app.state.task_service.get(task_id)
+        return TaskResponse.from_domain(item)
 
-    @router.put("/tasks/{task_id}", tags=["tasks"], summary="Обновить задачу",
-                responses={**NOT_FOUND, **INVALID_INPUT})
-    async def update_task(task_id: int, body: TaskInput, request: Request) -> Task:
-        repo = request.app.state.task_repo
-        await repo.update(Task(id=task_id, **body.model_dump()))
-        return await repo.get_by_id(task_id)
+    @router.patch("/tasks/{task_id}", tags=["tasks"],
+                  summary="Изменить задачу или отметить выполненной",
+                  response_model=TaskResponse,
+                  responses={**NOT_FOUND, **CONFLICT, **INVALID_INPUT})
+    async def patch_task(task_id: int, body: TaskPatchRequest,
+                         request: Request) -> TaskResponse:
+        changes = body.model_dump(exclude_unset=True)
+        item = await request.app.state.task_service.patch(task_id, changes)
+        return TaskResponse.from_domain(item)
 
     @router.delete("/tasks/{task_id}", status_code=204, tags=["tasks"],
                    summary="Удалить задачу", responses=NOT_FOUND)
     async def delete_task(task_id: int, request: Request) -> Response:
-        await request.app.state.task_repo.delete(task_id)
+        await request.app.state.task_service.delete(task_id)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     # ---------- учебные сессии ----------

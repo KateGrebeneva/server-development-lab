@@ -46,6 +46,10 @@
   <a href="docs/REPOSITORY.md">Лабораторная работа №6 — слой доступа к данным / Repository</a>
 </p>
 
+\<p>
+  \<img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzJiNGprcGNycDBrd2Z4dnF1aGRscnNmZnlodnY5ODliNTd5dXRhbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/iEbPnIPyh9Exq/giphy.gif" width="47px"/>
+  \<a href="docs/Service_Layer.md">Лабораторная работа №7 — Service Layer / CRUD REST API</a>
+\</p>
 ## 💻 О проекте
 
 **Studly** — веб-приложение для организации учебного процесса.
